@@ -31,12 +31,13 @@ class BaseHandler(object):
         sql = 'insert into chat_location(user_id, latitude, longitude, city_name) values(%s, %s, %s, %s) on conflict (user_id) do update set latitude = %s, longitude = %s, city_name = %s'
         cursor = self.conn.cursor()
         try:
-            cursor.execute(sql, ([chat_id, lat, lon, city.lower(), lat, lon, city.lower()]))
+            cursor.execute(sql, ([chat_id, lat, lon, city, lat, lon, city]))
             self.conn.commit()
         except Exception:
             self.conn.rollback()
             cursor.close()
-            raise Exception
+            s = "city "+city +" is not found"
+            raise Exception(s)
         cursor.close()
 
     async def insert_or_update_participating(self, chat_id):

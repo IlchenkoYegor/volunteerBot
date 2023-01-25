@@ -5,7 +5,6 @@ import geopy
 from geopy.geocoders import Nominatim
 from geopy.extra.rate_limiter import RateLimiter
 import matplotlib.pyplot as plt
-import plotly_express as px
 import tqdm
 from tqdm._tqdm_notebook import tqdm_notebook
 
