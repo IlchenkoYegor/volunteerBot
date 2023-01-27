@@ -28,7 +28,7 @@ class BaseHandler(object):
     async def insert_or_update_user_info(self, lon, lat, chat_id, city: str):
         #sql = 'select * from location_info';
         print(self, lon, lat, chat_id, city)
-        sql = 'insert into chat_location(user_id, latitude, longitude, city_name) values(%s, %s, %s, %s) on conflict (user_id) do update set latitude = %s, longitude = %s, city_name = %s'
+        sql = 'insert into chat_location(user_id, latitude, longitude, city_name,has_poll_invitation) values(%s, %s, %s, %s, false) on conflict (user_id) do update set latitude = %s, longitude = %s, city_name = %s'
         cursor = self.conn.cursor()
         try:
             cursor.execute(sql, ([chat_id, lat, lon, city, lat, lon, city]))
@@ -41,7 +41,7 @@ class BaseHandler(object):
         cursor.close()
 
     async def insert_or_update_participating(self, chat_id):
-        sql = 'insert into user_vote(vote_id, date_of_answer, user_id) values(default, default, 454034980)'
+        sql = 'insert into user_vote(vote_id, date_of_answer, user_id) values(default, default, %s)'
         cursor = self.conn.cursor()
         try:
             cursor.execute(sql, [chat_id])

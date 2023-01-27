@@ -88,6 +88,7 @@ async def polling_confirmation_successful(callback: types.CallbackQuery,  state:
     await callback.message.delete()
 
 
+
 def register_handlers_find_loc(dp1: Dispatcher):
     dp1.middleware.setup(ThrottlingMiddleware())
     dp1.register_message_handler(start_application, commands="start_locate", state="*")
