@@ -1,3 +1,4 @@
+import datetime
 import traceback
 
 import app.dbwork.db2Working
@@ -6,7 +7,6 @@ from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from create_bot import dp
-from app.middleware.throttle import ThrottlingMiddleware, rate_limit
 from app.dbwork.dbInit import db_handler as sql_handler
 from app.keyboards.confirm_kb import confirm_keyboard, button_outside_warning_y, button_outside_warning_n
 from app.keyboards.location_kb import button_location_name, location_kb
@@ -21,13 +21,26 @@ PARTICIPATING_MESSAGE = "GOOD! You are participating in next poll"
 
 WRONG_MESSAGE = "Something went wrong..."
 
-CANT_FIND_CITY_MESSAGE = "cant find the city by following coordinates, are you sure that you are standing in one that supports this functionallity?"
+CANT_FIND_CITY_MESSAGE = "Cant find the city by following coordinates, are you sure that you are standing in one that " \
+                         "supports this functionality? "
 
-NOT_SAVED_CHANGES_MESSAGE = "your changes are have not been saved"
-   # "Ви користуєтеся ботом для надання додаткової інформації про місцезнаходження,"
-   #                     " будьте відповідальні! Для продовження натисніть на кнопку \"Відправити свою локацію\" і "
-   #                     "відправте свою геолокацію або виберіть її вручну (при вимкненому місцеположенні)."
-   #                     " Дозволено 1 запит в 3 хвилини від початку введення команди"
+CANT_DELETE_MESSAGE_ERR = "This message can`t be deleted as it was sent more than 2 days ago but you mast be " \
+                          "participating in the poll "
+
+NOT_SAVED_CHANGES_MESSAGE = "Your changes are have not been saved"
+
+NEXT_DELIVERING_MESSAGE = "Using this command you can get informed about the next arriving of aid trucks.\
+ The next delivery of humanitarian assistance will be at :"
+
+CONFIRMATION_MESSAGE = "Please type \"Yes\" or \"No\" or click the button"
+
+YES = "yes"
+
+NO = "no"
+
+LNG = "longt"
+
+LAT = "latit"
 
 
 class StarterInitialize(StatesGroup):
@@ -51,72 +64,66 @@ async def location_confirmed(message: types.Message, state: FSMContext):
 
 
 async def warning_confirmed(message: types.Message, state: FSMContext):
-    if message.text.lower() not in ["yes", "no", button_outside_warning_y, button_outside_warning_n]:
-        await message.answer("Please type \"Yes\" or \"No\" or click the button")
+    if message.text.lower() not in [YES, NO, button_outside_warning_y, button_outside_warning_n]:
+        await message.answer(CONFIRMATION_MESSAGE)
         return
     else:
-        if(message.text.lower().__eq__("no")):
+        if message.text.lower().__eq__(NO):
             await SendLocation.next()
             await message.answer(NOT_SAVED_CHANGES_MESSAGE, reply_markup=types.ReplyKeyboardRemove())
             return
         else:
             user_data = await state.get_data()
-            lat = user_data.get('latit')
-            lon = user_data.get('longt')
+            lat = user_data.get(LAT)
+            lon = user_data.get(LNG)
             try:
                 city = app.converters.street_converter.convert_street(lat, lon)
-                await sql_handler.insert_or_update_user_info(lon=lon, lat=lat, chat_id=message.chat.id,city= city)
-                print(message.chat.id)
+                await sql_handler.insert_or_update_user_info(lon=lon, lat=lat, chat_id=message.chat.id, city=city)
             except AttributeError as atr:
-                await message.answer(atr.name)
+                await message.answer(CANT_FIND_CITY_MESSAGE)
                 return
             except Exception:
                 await message.answer(CANT_FIND_CITY_MESSAGE)
                 print(traceback.format_exc())
                 return
-    #await state.update_data(confirm=message.text)
     await message.answer(button_outside_warning_send_message, reply_markup=types.ReplyKeyboardRemove())
     await SendLocation.next()
 
 
-async def polling_confirmation_successful(callback: types.CallbackQuery,  state: FSMContext):
-    await callback.message.answer(PARTICIPATING_MESSAGE)
+async def polling_confirmation_successful(callback: types.CallbackQuery, state: FSMContext):
     try:
         await sql_handler.insert_or_update_participating(callback.message.chat.id)
+        diff = callback.message.date - (datetime.datetime.now() - datetime.timedelta(days=2))
+        if diff.total_seconds() < 0:
+            await callback.message.edit_reply_markup(reply_markup=None)
+            await callback.message.edit_text(
+                text=CANT_FIND_CITY_MESSAGE)
+            await callback.message.answer(PARTICIPATING_MESSAGE)
+        else:
+            await callback.message.delete()
     except Exception:
         await callback.message.answer(WRONG_MESSAGE)
-    await callback.message.delete()
 
+
+async def get_time_of_receiving(message: types.Message, state: FSMContext):
+    try:
+        res = await sql_handler.get_time_of_city(message.chat.id)
+        await message.answer(text=NEXT_DELIVERING_MESSAGE + " " + res.strftime("%Y.%m.%d, %H:%M"))
+    except Exception as arg:
+        print("exception ", arg)
+        await message.answer(WRONG_MESSAGE)
 
 
 def register_handlers_find_loc(dp1: Dispatcher):
-    dp1.middleware.setup(ThrottlingMiddleware())
     dp1.register_message_handler(start_application, commands="start_locate", state="*")
-    dp1.register_message_handler(location_confirmed, content_types=['location'], state=SendLocation.waiting_for_location)
+    dp1.register_message_handler(location_confirmed, content_types=['location'],
+                                 state=SendLocation.waiting_for_location)
     dp1.register_message_handler(location_confirmed, state=SendLocation.waiting_for_location)
-    dp1.register_message_handler(warning_confirmed,  state=SendLocation.waiting_for_message)
-    dp1.register_callback_query_handler(polling_confirmation_successful, state=SendLocation.waiting_for_polling) #commands="/participateInPoll")
-    #dp1.register_message_handler(text_sent, state=SendLocation.waiting_for_message)
+    dp1.register_message_handler(warning_confirmed, state=SendLocation.waiting_for_message)
+    dp1.register_message_handler(get_time_of_receiving, state=SendLocation.waiting_for_polling, commands="time")
+    dp1.register_callback_query_handler(polling_confirmation_successful, state=SendLocation.waiting_for_polling)
 
 
-# async def text_sent(message: types.Message, state: FSMContext):
-#     if len(message.text) < 6 or len(message.text) > 400:
-#         await message.answer("Будьте ласкаві, напишіть повідомлення більше 6 і менше 400 символів")
-#         return
-#     user_data = await state.get_data()
-#     lat = user_data.get('latit')
-#     lon = user_data.get('longt')
-#     war_s = True
-#     address, region = app.converters.street_converter.convert_street(lat, lon)
-#     message_f = message.text
-#     await state.finish()
-#     try:
-#         await sql_handler.insert_new_data(lon, lat, war_s, message_f, address, region)
-#         await message.answer("Дякуємо за інформацію, ваше повідомлення було збережено", reply_markup=types.ReplyKeyboardRemove())
-#     except:
-#         await message.answer("Помилка в визначенні локації, запит не був збережений (запит можливий в межах України)", reply_markup=types.ReplyKeyboardRemove())
-
-#@rate_limit(180, 'update_locate')
 @dp.message_handler(commands=['update_personal'])
 async def start_application(message: types.Message):
     await message.reply(UPDATE_MESSAGE, reply_markup=location_kb)

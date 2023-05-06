@@ -2,11 +2,12 @@ import configparser
 
 from aiogram import Bot
 from aiogram import Dispatcher
-from aiogram.contrib.fsm_storage.memory import MemoryStorage
-import os
 
+from aiogram.contrib.fsm_storage.mongo import MongoStorage
 
 config = configparser.ConfigParser()
 config.read("config/bot.ini")
 bot = Bot(config.get("config", "TOKEN"))
-dp = Dispatcher(bot, storage=MemoryStorage())
+
+storage = MongoStorage(db_name='PythonPollStates', uri=config.get("mongoDB", "uri"))
+dp = Dispatcher(bot, storage=storage)
