@@ -115,7 +115,7 @@ async def get_time_of_receiving(message: types.Message, state: FSMContext):
 
 
 def register_handlers_find_loc(dp1: Dispatcher):
-    dp1.register_message_handler(start_application, commands="start_locate", state="*")
+    dp1.register_message_handler(start_application, commands="update_personal", state="*")
     dp1.register_message_handler(location_confirmed, content_types=['location'],
                                  state=SendLocation.waiting_for_location)
     dp1.register_message_handler(location_confirmed, state=SendLocation.waiting_for_location)
