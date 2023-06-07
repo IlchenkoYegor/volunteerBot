@@ -2,7 +2,6 @@ import configparser
 
 from aiogram import Bot
 from aiogram import Dispatcher
-
 from aiogram.contrib.fsm_storage.mongo import MongoStorage
 
 config = configparser.ConfigParser()

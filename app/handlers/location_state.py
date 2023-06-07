@@ -86,6 +86,7 @@ async def warning_confirmed(message: types.Message, state: FSMContext):
                 await message.answer(CANT_FIND_CITY_MESSAGE)
                 print(traceback.format_exc())
                 return
+    await state.update_data(confirmed_user=True)
     await message.answer(button_outside_warning_send_message, reply_markup=types.ReplyKeyboardRemove())
     await SendLocation.next()
 
@@ -101,6 +102,7 @@ async def polling_confirmation_successful(callback: types.CallbackQuery, state: 
             await callback.message.answer(PARTICIPATING_MESSAGE)
         else:
             await callback.message.delete()
+            await callback.message.answer(PARTICIPATING_MESSAGE)
     except Exception:
         await callback.message.answer(WRONG_MESSAGE)
 
@@ -115,7 +117,7 @@ async def get_time_of_receiving(message: types.Message, state: FSMContext):
 
 
 def register_handlers_find_loc(dp1: Dispatcher):
-    dp1.register_message_handler(start_application, commands="update_personal", state="*")
+    dp1.register_message_handler(start_application, state="*", commands="update_personal")
     dp1.register_message_handler(location_confirmed, content_types=['location'],
                                  state=SendLocation.waiting_for_location)
     dp1.register_message_handler(location_confirmed, state=SendLocation.waiting_for_location)
