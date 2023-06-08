@@ -11,28 +11,29 @@ from app.dbwork.dbInit import db_handler as sql_handler
 from app.keyboards.confirm_kb import confirm_keyboard, button_outside_warning_y, button_outside_warning_n
 from app.keyboards.location_kb import button_location_name, location_kb
 
-outside_warning_msg = "Are you sure that you want to make changes in your personal information?"
+outside_warning_msg = "✍🏼❓ Are you sure that you want to make changes in your personal information?"
 
-button_outside_warning_send_message = "Thank you for updating the data by actual information"
+button_outside_warning_send_message = "✍🏼✔ Thank you for updating the data by actual information"
 
-UPDATE_MESSAGE = "Using this command you can change your personal information in particular you location information"
+UPDATE_MESSAGE = "✍🏼 Using this command you can change your personal information in particular you location information"
 
-PARTICIPATING_MESSAGE = "GOOD! You are participating in next poll"
+PARTICIPATING_MESSAGE = "✔ GOOD! You are participating in next poll"
 
-WRONG_MESSAGE = "Something went wrong..."
+WRONG_MESSAGE = "⚠ Something went wrong..."
 
-CANT_FIND_CITY_MESSAGE = "Cant find the city by following coordinates, are you sure that you are standing in one that " \
+CANT_FIND_CITY_MESSAGE = "🗺️❓ Cant find the city by following coordinates, are you sure that you are standing in one" \
+                         " that " \
                          "supports this functionality? "
 
-CANT_DELETE_MESSAGE_ERR = "This message can`t be deleted as it was sent more than 2 days ago but you mast be " \
+CANT_DELETE_MESSAGE_ERR = "♻This message can`t be deleted as it was sent more than 2 days ago but you mast be " \
                           "participating in the poll "
 
-NOT_SAVED_CHANGES_MESSAGE = "Your changes are have not been saved"
+NOT_SAVED_CHANGES_MESSAGE = "✍🏼❌ Your changes are have not been saved"
 
-NEXT_DELIVERING_MESSAGE = "Using this command you can get informed about the next arriving of aid trucks.\
+NEXT_DELIVERING_MESSAGE = "🕒 Using this command you can get informed about the next arriving of aid trucks.\
  The next delivery of humanitarian assistance will be at :"
 
-CONFIRMATION_MESSAGE = "Please type \"Yes\" or \"No\" or click the button"
+CONFIRMATION_MESSAGE = "✔ Please type \"Yes\" or \"No\" or click the button"
 
 YES = "yes"
 

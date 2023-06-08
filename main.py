@@ -17,9 +17,9 @@ logger = logging.getLogger(__name__)
 
 async def set_commands(bot: Bot):
     commands = [
-        BotCommand(command="/start_locate", description="Send your location"),
-        BotCommand(command="/cancel", description="cancel the current action and get back to the main menu"),
-        BotCommand(command="/time", description="get aware about next approximate delivery time in your city")
+        BotCommand(command="/update_personal", description="📝 Modify your register data"),
+        BotCommand(command="/cancel", description="❌ Cancel the current action and get back to the main menu"),
+        BotCommand(command="/time", description="⌚ Get aware about next approximate delivery time in your city ")
     ]
     await bot.set_my_commands(commands)
 
